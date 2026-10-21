@@ -84,7 +84,7 @@ namespace {
 		const int nameWidth = 24;
 		const int columnWidth = 10;
 
-		std::cout << "Accuracy (%), " << branchCount << " branches per test\n\n";
+		std::cout << branchCount << " branches per test\n\n";
 
 		std::cout << std::left << std::setw(nameWidth) << "Test" << std::right;
 		for (int bits : historySizes)
@@ -126,11 +126,11 @@ void runTask5() {
 	names.push_back("Alternating (10)");
 	traces.push_back(patternTrace(N, "10"));
 
-	names.push_back("Loop (1110)");
-	traces.push_back(patternTrace(N, "1110"));
-
 	names.push_back("Pattern (11010010)");
 	traces.push_back(patternTrace(N, "11010010"));
+
+	names.push_back("Loop (1110)");
+	traces.push_back(patternTrace(N, "1110"));
 
 	names.push_back("1110 + 5% noise");
 	traces.push_back(noisyPatternTrace(N, "1110", 5));
