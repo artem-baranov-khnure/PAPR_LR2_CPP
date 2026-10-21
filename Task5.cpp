@@ -106,7 +106,7 @@ namespace {
 
 }
 
-void runTests() {
+void runTask5() {
 	srand(1);
 	const int N = 100000;
 	const std::vector<int> historySizes = { 1, 2, 4, 8 };
