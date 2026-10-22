@@ -4,8 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include <type_traits>
-#include <windows.h>
+#include <chrono>
 #include <ctime>
 using namespace std;
 
@@ -14,21 +13,16 @@ using namespace std;
 template <class Function>
 double GetMinTime(Function&& f, int repeat = 10) {
 
-	LARGE_INTEGER freq, start, finish;
-
-	// https://learn.microsoft.com/ru-ru/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency
-	QueryPerformanceFrequency(&freq);
-
 	double min_val = 1.0e9;
 
 	for (int i = 0; i < repeat; i++) {
 
-		// https://learn.microsoft.com/ru-ru/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter
-		QueryPerformanceCounter(&start);
+		// https://en.cppreference.com/w/cpp/chrono/steady_clock
+		auto start = chrono::steady_clock::now();
 		f();
-		QueryPerformanceCounter(&finish);
+		auto finish = chrono::steady_clock::now();
 
-		double t = (double)(finish.QuadPart - start.QuadPart) / freq.QuadPart;
+		double t = chrono::duration<double>(finish - start).count();
 
 		if (t < min_val) {
 			min_val = t;
@@ -57,7 +51,6 @@ double GetPercent(double before, double after) {
 
 // Task 1
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// При виконанні використалися "Пз-2.pdf", приклад 2
 size_t CountPositive(int* x, size_t n) {
 	size_t count = 0;
 
@@ -70,17 +63,20 @@ size_t CountPositive(int* x, size_t n) {
 }
 
 size_t OptCountPositive(int* x, size_t n) {
-	size_t count = 0;
+	size_t count = n;
+	size_t i = 0;
 
-	for (size_t i = 0; i < n; i++) {
-		count += (unsigned long long)(-(long long)x[i]) >> 63;
+	for (; i + 4 <= n; i += 4) {
+		count += ((x[i] - 1) >> 31) + ((x[i + 1] - 1) >> 31) + ((x[i + 2] - 1) >> 31) + ((x[i + 3] - 1) >> 31);
+	}
+	for (; i < n; i++) {
+		count += (x[i] - 1) >> 31;
 	}
 	return count;
 }
 
 // Task 2
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// При виконанні використалися "Пз-2.pdf", приклад 3
 void BubbleSort(int* x, int n) {
 	for (int p = n - 1; p >= 1; p--) {
 		for (int i = 0; i < p; i++) {
@@ -103,7 +99,6 @@ void OptBubbleSort(int* x, int n) {
 
 // Task 3
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// При виконанні використалися "Пз-2.pdf", приклад 4
 void MulPol(int* x, int* y, int* z, int n) {
 	memset(z, 0, 2 * n * sizeof(int));
 
@@ -155,7 +150,6 @@ void MulPolOpt3(int* x, int* y, int* z, int n) {
 
 // Task 4
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// При виконанні використалися "2025_Лекція_5.pdf", ст. 26 (1 спосіб округлення)
 template <class T>
 void RoundArray(const T* x, long long* r, size_t n) {
 	for (size_t i = 0; i < n; i++) {
@@ -170,10 +164,8 @@ void RoundArray(const T* x, long long* r, size_t n) {
 
 template <class T>
 void OptRoundArray(const T* x, long long* r, size_t n) {
-	typedef typename conditional<sizeof(T) == 8, unsigned long long, unsigned int>::type Bits;
 	for (size_t i = 0; i < n; i++) {
-		Bits sign = (*(const Bits*)&x[i]) >> (sizeof(T) * 8 - 1);
-		r[i] = (long long)((double)x[i] + (0.5 - (double)sign));
+		r[i] = (long long)(x[i] + copysign(0.5, (double)x[i]));
 	}
 }
 
