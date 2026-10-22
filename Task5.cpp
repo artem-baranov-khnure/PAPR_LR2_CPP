@@ -62,7 +62,7 @@ namespace {
 		return trace;
 	}
 
-	double accuracy(int historyBits, const std::vector<bool>& trace) {
+	double calculateAccuracy(int historyBits, const std::vector<bool>& trace) {
 		TwoLevelPredictor predictor(historyBits);
 		int correct = 0;
 
@@ -98,7 +98,7 @@ namespace {
 			std::cout << std::left << std::setw(nameWidth) << names[i] << std::right;
 			for (int bits : historySizes)
 			{
-				std::cout << std::setw(columnWidth) << accuracy(bits, traces[i]);
+				std::cout << std::setw(columnWidth) << calculateAccuracy(bits, traces[i]);
 			}
 			std::cout << "\n";
 		}
