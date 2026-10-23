@@ -2,13 +2,12 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
-#include <ios>
 #include <iostream>
 #include <vector>
 using namespace std;
 
 template <class Function>
-double GetMinTime(Function&& f, int repeat = 10) {
+double GetMinTime(Function&& f, int repeat = 20) {
 	double best = 1.0e9;
 	for (int i = 0; i < repeat; i++) {
 		auto start = chrono::steady_clock::now();
@@ -20,8 +19,8 @@ double GetMinTime(Function&& f, int repeat = 10) {
 	return best;
 }
 
-void FillArray(int* arr, size_t n, int mode) {
-	for (size_t i = 0; i < n; i++) {
+void FillArray(int* arr, int n, int mode) {
+	for (int i = 0; i < n; i++) {
 		if (mode == 0)      arr[i] = rand() % 100 + 1;
 		else if (mode == 1) arr[i] = -(rand() % 100) - 1;
 		else                arr[i] = rand() % 201 - 100;
@@ -33,15 +32,14 @@ void PrintResult(const char* name, double t_if, double t_noif, bool same) {
 	cout << name
 		<< "with if = " << t_if * 1000 << " ms   "
 		<< "without if = " << t_noif * 1000 << " ms   "
-		<< "faster by " << percent << " %"
-		<< (same ? "" : "   RESULTS DIFFER!") << endl;
+		<< "faster by " << percent << " %" << endl;
 }
 
 // Task 1
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-size_t CountPositive(const int* x, size_t n) {
-	size_t count = 0;
-	for (size_t i = 0; i < n; i++) {
+int CountPositive(const int* x, int n) {
+	int count = 0;
+	for (int i = 0; i < n; i++) {
 		if (x[i] > 0) {
 			count++;
 		}
@@ -49,23 +47,22 @@ size_t CountPositive(const int* x, size_t n) {
 	return count;
 }
 
-size_t CountPositiveNoIf(const int* x, size_t n) {
-	size_t count = 0;
-	for (size_t i = 0; i < n; i++) {
-		long long negated = -(long long)x[i];
-		count += (unsigned long long)negated >> 63;
+int CountPositiveNoIf(const int* x, int n) {
+	int count = 0;
+	for (int i = 0; i < n; i++) {
+		count -= (-x[i]) >> 31;
 	}
 	return count;
 }
 
 void TestTask1() {
-	const size_t n = 5000000;
+	const int n = 5000000;
 	vector<int> arr(n);
 	const char* names[3] = { "all positive: ", "all negative: ", "random:       " };
 
 	for (int mode = 0; mode < 3; mode++) {
 		FillArray(arr.data(), n, mode);
-		volatile size_t r1 = 0, r2 = 0;
+		volatile int r1 = 0, r2 = 0;
 
 		double t1 = GetMinTime([&] { r1 = CountPositive(arr.data(), n); });
 		double t2 = GetMinTime([&] { r2 = CountPositiveNoIf(arr.data(), n); });
@@ -171,34 +168,33 @@ void TestTask3() {
 // Task 4
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 template <class T>
-void RoundArray(const T* x, long long* r, size_t n) {
+void RoundArray(const T* x, int* r, int n) {
 	const T half = (T)0.5;
-	for (size_t i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		if (x[i] >= 0) {
-			r[i] = (long long)(x[i] + half);
+			r[i] = (int)(x[i] + half);
 		}
 		else {
-			r[i] = (long long)(x[i] - half);
+			r[i] = (int)(x[i] - half);
 		}
 	}
 }
 
 template <class T>
-void RoundArrayNoIf(const T* x, long long* r, size_t n) {
-	const T half = (T)0.5;
-	for (size_t i = 0; i < n; i++) {
-		T sign = (T)(2 * (x[i] >= 0) - 1);
-		r[i] = (long long)(x[i] + half * sign);
+void RoundArrayNoIf(const T* x, int* r, int n) {
+	for (int i = 0; i < n; i++) {
+		int t = (int)(x[i] * 2);
+		r[i] = (t + ((t >> 31) | 1)) / 2;
 	}
 }
 
 template <class T>
 void TestRound(const char* name) {
-	const size_t n = 5000000;
+	const int n = 5000000;
 	vector<T> x(n);
-	vector<long long> r1(n), r2(n);
+	vector<int> r1(n), r2(n);
 
-	for (size_t i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		x[i] = (T)((rand() % 20001 - 10000) / 100.0);
 	}
 
