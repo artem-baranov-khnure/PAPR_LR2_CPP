@@ -88,12 +88,13 @@ void BubbleSort(int* x, int n) {
 void BubbleSortNoIf(int* x, int n) {
 	for (int last = n - 1; last >= 1; last--) {
 		for (int i = 0; i < last; i++) {
-			bool needSwap = x[i] > x[i + 1];
-			int k = i + (int)needSwap;
+			int a = x[i];
+			int b = x[i + 1];
 
-			int tmp = x[i];
-			x[i] = x[k];
-			x[k] = tmp;
+			int mask = (b - a) >> 31;
+
+			x[i] = (a & ~mask) | (b & mask);
+			x[i + 1] = (b & ~mask) | (a & mask);
 		}
 	}
 }
@@ -140,12 +141,8 @@ void MulPolNoIf(const int* x, const int* y, int* z, int n) {
 	}
 
 	for (int j = 0; j < n; j++) {
-		int keep = (y[j] | -y[j]) >> 31;
-		int neg = y[j] >> 31;
-
 		for (int i = 0; i < n; i++) {
-			int term = ((x[i] & keep) ^ neg) - neg;
-			z[i + j] += term;
+			z[i + j] += x[i] * y[j];
 		}
 	}
 }
@@ -183,8 +180,7 @@ void RoundArray(const T* x, int* r, int n) {
 template <class T>
 void RoundArrayNoIf(const T* x, int* r, int n) {
 	for (int i = 0; i < n; i++) {
-		int t = (int)(x[i] * 2);
-		r[i] = (t + ((t >> 31) | 1)) / 2;
+		r[i] = (int)std::round(x[i]);
 	}
 }
 
