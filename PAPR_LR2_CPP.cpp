@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
@@ -32,7 +33,8 @@ void PrintResult(const char* name, double t_if, double t_noif, bool same) {
 	cout << name
 		<< "with if = " << t_if * 1000 << " ms   "
 		<< "without if = " << t_noif * 1000 << " ms   "
-		<< "faster by " << percent << " %" << endl;
+		<< "faster by " << percent << " %   "
+		<< (same ? "OK" : "MISMATCH") << endl;
 }
 
 // Task 1
