@@ -1,10 +1,12 @@
 #include "Task5.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iomanip>
 #include <ios>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -77,6 +79,43 @@ namespace {
 		return 100.0 * correct / trace.size();
 	}
 
+	std::vector<std::pair<bool, bool>> collectPredictions(int historyBits, const std::vector<bool>& trace, size_t steps) {
+		TwoLevelPredictor predictor(historyBits);
+		const size_t count = std::min(steps, trace.size());
+
+		std::vector<std::pair<bool, bool>> results;
+		results.reserve(count);
+
+		for (size_t i = 0; i < count; i++) {
+			const bool actual = trace[i];
+			const bool predicted = predictor.predict();
+			results.emplace_back(actual, predicted);
+			predictor.update(actual);
+		}
+		return results;
+	}
+
+	void printPredictions(const std::vector<std::pair<bool, bool>>& predictions) {
+		const int columnWidth = 11;
+
+		std::cout << std::left
+			<< std::setw(columnWidth) << "Step"
+			<< std::setw(columnWidth) << "Actual"
+			<< std::setw(columnWidth) << "Predicted"
+			<< "Hit\n"
+			<< std::string(columnWidth * 3 + 3, '-') << "\n";
+
+		for (size_t i = 0; i < predictions.size(); i++) {
+			const bool actual = predictions[i].first;
+			const bool predicted = predictions[i].second;
+			std::cout << std::setw(columnWidth) << i + 1
+				<< std::setw(columnWidth) << (actual ? 1 : 0)
+				<< std::setw(columnWidth) << (predicted ? 1 : 0)
+				<< (actual == predicted ? '+' : '-') << "\n";
+		}
+		std::cout << std::right;
+	}
+
 	void printResults(int branchCount,
 		const std::vector<std::string>& names,
 		const std::vector<std::vector<bool>>& traces,
@@ -139,4 +178,12 @@ void TestTask5() {
 	traces.push_back(noisyPatternTrace(N, "1110", 20));
 
 	printResults(N, names, traces, historySizes);
+
+	const std::vector<bool> demoTrace = patternTrace(12, "110");
+
+	std::cout << "\nPattern (110), N=1:\n";
+	printPredictions(collectPredictions(1, demoTrace, demoTrace.size()));
+
+	std::cout << "\nPattern (110), N=2:\n";
+	printPredictions(collectPredictions(2, demoTrace, demoTrace.size()));
 }
